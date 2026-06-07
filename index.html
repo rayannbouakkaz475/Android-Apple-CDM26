@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coupe du Monde 2026</title>
+<style>
+:root { --blue:#08233f; --light:#f4f7fb; --green:#d8f3dc; --yellow:#fff3b0; --border:#c9d6e2; --active:#ffd966; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:Arial, Helvetica, sans-serif; background:var(--light); color:#13293d; }
+input[name="tab"] { position:absolute; opacity:0; pointer-events:none; }
+header { position:sticky; top:0; z-index:50; background:var(--blue); color:white; padding:14px 16px; box-shadow:0 2px 8px #0004; }
+header h1 { margin:0; font-size:20px; }
+nav { display:flex; gap:8px; overflow-x:auto; margin-top:10px; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
+nav label, nav button { border:0; border-radius:9px; padding:10px 13px; background:white; color:#08233f; font-weight:700; cursor:pointer; white-space:nowrap; min-width:max-content; font-size:14px; font-family:Arial, Helvetica, sans-serif; }
+nav button { background:#ffe1e1; }
+.wrap { max-width:1200px; margin:auto; padding:16px; }
+.page { display:none; }
+.card { background:white; border:1px solid var(--border); border-radius:14px; margin:18px 0; padding:14px; box-shadow:0 2px 8px #00000010; }
+h2 { margin:0 0 10px; color:#08233f; }
+h3 { margin:16px 0 8px; }
+table { width:100%; border-collapse:collapse; margin:8px 0 14px; font-size:14px; }
+th { background:#174a73; color:white; text-align:left; }
+td, th { border:1px solid var(--border); padding:8px; }
+.score { width:54px; text-align:center; font-size:17px; font-weight:bold; background:var(--yellow); border:2px solid #f0c400; border-radius:6px; padding:6px; display:inline-block; vertical-align:middle; }
+.rank-1, .rank-2 { background:var(--green); font-weight:bold; }
+.small { font-size:13px; color:#52616f; }
+td:has(.score){white-space:nowrap;}
+.two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.notice { background:#eef7ff; border-left:5px solid #174a73; padding:12px; border-radius:8px; }
+.ko-team { font-weight:bold; }
+
+#tab-accueil:checked ~ .wrap .page-accueil,
+#tab-A:checked ~ .wrap .page-A,
+#tab-B:checked ~ .wrap .page-B,
+#tab-C:checked ~ .wrap .page-C,
+#tab-D:checked ~ .wrap .page-D,
+#tab-E:checked ~ .wrap .page-E,
+#tab-F:checked ~ .wrap .page-F,
+#tab-G:checked ~ .wrap .page-G,
+#tab-H:checked ~ .wrap .page-H,
+#tab-I:checked ~ .wrap .page-I,
+#tab-J:checked ~ .wrap .page-J,
+#tab-K:checked ~ .wrap .page-K,
+#tab-L:checked ~ .wrap .page-L,
+#tab-phase:checked ~ .wrap .page-phase { display:block; }
+
+#tab-accueil:checked ~ header label[for="tab-accueil"],
+#tab-A:checked ~ header label[for="tab-A"],
+#tab-B:checked ~ header label[for="tab-B"],
+#tab-C:checked ~ header label[for="tab-C"],
+#tab-D:checked ~ header label[for="tab-D"],
+#tab-E:checked ~ header label[for="tab-E"],
+#tab-F:checked ~ header label[for="tab-F"],
+#tab-G:checked ~ header label[for="tab-G"],
+#tab-H:checked ~ header label[for="tab-H"],
+#tab-I:checked ~ header label[for="tab-I"],
+#tab-J:checked ~ header label[for="tab-J"],
+#tab-K:checked ~ header label[for="tab-K"],
+#tab-L:checked ~ header label[for="tab-L"],
+#tab-phase:checked ~ header label[for="tab-phase"] { background:var(--active); }
+
+@media(max-width:800px) {
+  header h1 { font-size:17px; }
+  .two { grid-template-columns:1fr; }
+  table { font-size:12px; }
+  td,th { padding:6px; }
+  .hide-mobile { display:none; }
+  .score { width:46px; font-size:16px; }
+}
+</style>
+
+<link rel="icon" type="image/png" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Coupe du Monde 2026">
+
+<style>
+html { -webkit-text-size-adjust: 100%; }
+body { padding-bottom: env(safe-area-inset-bottom); }
+header { padding-top: calc(14px + env(safe-area-inset-top)); }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style id="multi-user-live-style">
+.auth-live-box{background:#fff;border:1px solid #c9d6e2;border-radius:12px;padding:14px;margin:14px 0;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.auth-live-box h2{margin:0 0 10px;color:#08233f;font-size:22px}
+.auth-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.auth-grid input{font-size:16px;padding:10px;border:1px solid #b8c7d6;border-radius:8px}
+.auth-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.auth-actions button,.live-actions button{border:0;border-radius:8px;padding:10px 12px;font-weight:700;background:#08233f;color:white}
+.auth-actions button.secondary,.live-actions button.secondary{background:#ffd966;color:#08233f}
+.status-pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#eef3f7;color:#08233f;font-weight:700;margin-top:6px}
+.live-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#officialMatches{font-size:14px;line-height:1.35;max-height:260px;overflow:auto;border-top:1px solid #d7e1ea;padding-top:8px}
+.match-card{border:1px solid #d7e1ea;border-radius:10px;padding:10px;margin:8px 0;background:#f7fafc}
+.match-card b{color:#08233f}
+.prediction-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.prediction-row input{width:58px;text-align:center;font-size:17px;font-weight:700;background:#fff4b0;border:2px solid #efc400;border-radius:8px;padding:6px}
+.prediction-row button{border:0;border-radius:8px;padding:8px 10px;font-weight:700;background:#0b5; color:#fff}
+.small-muted{font-size:13px;color:#5c6b7a}
+</style>
+
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<meta name="theme-color" content="#08233f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CDM 2026">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+</head>
+<body>
+<input type="radio" name="tab" id="tab-accueil" checked>
+<input type="radio" name="tab" id="tab-A">
+<input type="radio" name="tab" id="tab-B">
+<input type="radio" name="tab" id="tab-C">
+<input type="radio" name="tab" id="tab-D">
+<input type="radio" name="tab" id="tab-E">
+<input type="radio" name="tab" id="tab-F">
+<input type="radio" name="tab" id="tab-G">
+<input type="radio" name="tab" id="tab-H">
+<input type="radio" name="tab" id="tab-I">
+<input type="radio" name="tab" id="tab-J">
+<input type="radio" name="tab" id="tab-K">
+<input type="radio" name="tab" id="tab-L">
+<input type="radio" name="tab" id="tab-phase">
+<header>
+<h1>🏆 Coupe du Monde 2026</h1>
+<nav>
+<label for="tab-accueil">Accueil</label>
+<label for="tab-A">Groupe A</label>
+<label for="tab-B">Groupe B</label>
+<label for="tab-C">Groupe C</label>
+<label for="tab-D">Groupe D</label>
+<label for="tab-E">Groupe E</label>
+<label for="tab-F">Groupe F</label>
+<label for="tab-G">Groupe G</label>
+<label for="tab-H">Groupe H</label>
+<label for="tab-I">Groupe I</label>
+<label for="tab-J">Groupe J</label>
+<label for="tab-K">Groupe K</label>
+<label for="tab-L">Groupe L</label>
+<label for="tab-phase">Phase finale</label>
+<button type="button" onclick="clearScores()">Effacer scores</button>
+</nav>
+</header>
+<div class="wrap">
+
+<section class="page page-accueil">
+
+<div class="auth-live-box" id="multiUserLivePanel">
+  <h2>👤 Espace utilisateur & direct</h2>
+  <div id="authLoggedOut">
+    <div class="auth-grid">
+      <input id="authEmail" type="email" placeholder="Email">
+      <input id="authPassword" type="password" placeholder="Mot de passe">
+    </div>
+    <div class="auth-actions">
+      <button onclick="signUpUser()">Créer un compte</button>
+      <button class="secondary" onclick="signInUser()">Se connecter</button>
+    </div>
+    <div class="small-muted">Chaque utilisateur pourra enregistrer ses propres scores/pronostics.</div>
+  </div>
+
+  <div id="authLoggedIn" style="display:none">
+    <div>Connecté : <b id="currentUserEmail"></b></div>
+    <span class="status-pill" id="syncStatus">Prêt</span>
+    <div class="auth-actions">
+      <button onclick="signOutUser()">Se déconnecter</button>
+      <button class="secondary" onclick="enableBrowserNotifications()">Activer notifications</button>
+    </div>
+  </div>
+
+  <hr style="border:0;border-top:1px solid #d7e1ea;margin:12px 0">
+
+  <h2>⚽ Données officielles API-Football</h2>
+  <div class="live-actions">
+    <button onclick="syncOfficialMatches()">Synchroniser matchs</button>
+    <button class="secondary" onclick="syncLiveScores()">Scores live</button>
+    <button class="secondary" onclick="loadOfficialMatches()">Afficher matchs officiels</button>
+  </div>
+  <div class="small-muted">Les matchs officiels viennent du Worker Cloudflare sécurisé. Les pronostics sont liés au compte utilisateur Supabase.</div>
+  <div id="officialMatches"></div>
+</div>
+
+
+<div class="card notice">
+  <b>Installation iPhone :</b><br>
+  Ouvre cette page dans Safari, appuie sur <b>Partager</b>, puis <b>Sur l’écran d’accueil</b>.
+</div>
+
+  <div class="card notice">
+    <b>Mode d'emploi :</b><br>
+    Clique sur un onglet Groupe A, B, C… en haut. Les onglets fonctionnent sans JavaScript.
+    Note ensuite les scores dans les cases jaunes : les classements se calculent automatiquement si ton navigateur autorise le JavaScript.
+  </div>
+</section>
+<section class="page page-A"><div class="card"><h2>Groupe A</h2><p><b>Équipes :</b> Mexique • Afrique du Sud • Corée du Sud • Tchéquie</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>1</td><td>11/06</td><td class="hide-mobile">13:00</td><td><b>Mexique</b></td>
+<td><input class="score" id="s1a" type="number" min="0" inputmode="numeric" oninput="setScore(1,'a',this.value)"> - <input class="score" id="s1b" type="number" min="0" inputmode="numeric" oninput="setScore(1,'b',this.value)"></td>
+<td><b>Afrique du Sud</b></td></tr><tr>
+<td>2</td><td>11/06</td><td class="hide-mobile">20:00</td><td><b>Corée du Sud</b></td>
+<td><input class="score" id="s2a" type="number" min="0" inputmode="numeric" oninput="setScore(2,'a',this.value)"> - <input class="score" id="s2b" type="number" min="0" inputmode="numeric" oninput="setScore(2,'b',this.value)"></td>
+<td><b>Tchéquie</b></td></tr><tr>
+<td>25</td><td>18/06</td><td class="hide-mobile">12:00</td><td><b>Tchéquie</b></td>
+<td><input class="score" id="s25a" type="number" min="0" inputmode="numeric" oninput="setScore(25,'a',this.value)"> - <input class="score" id="s25b" type="number" min="0" inputmode="numeric" oninput="setScore(25,'b',this.value)"></td>
+<td><b>Afrique du Sud</b></td></tr><tr>
+<td>28</td><td>18/06</td><td class="hide-mobile">19:00</td><td><b>Mexique</b></td>
+<td><input class="score" id="s28a" type="number" min="0" inputmode="numeric" oninput="setScore(28,'a',this.value)"> - <input class="score" id="s28b" type="number" min="0" inputmode="numeric" oninput="setScore(28,'b',this.value)"></td>
+<td><b>Corée du Sud</b></td></tr><tr>
+<td>53</td><td>24/06</td><td class="hide-mobile">19:00</td><td><b>Tchéquie</b></td>
+<td><input class="score" id="s53a" type="number" min="0" inputmode="numeric" oninput="setScore(53,'a',this.value)"> - <input class="score" id="s53b" type="number" min="0" inputmode="numeric" oninput="setScore(53,'b',this.value)"></td>
+<td><b>Mexique</b></td></tr><tr>
+<td>54</td><td>24/06</td><td class="hide-mobile">19:00</td><td><b>Afrique du Sud</b></td>
+<td><input class="score" id="s54a" type="number" min="0" inputmode="numeric" oninput="setScore(54,'a',this.value)"> - <input class="score" id="s54b" type="number" min="0" inputmode="numeric" oninput="setScore(54,'b',this.value)"></td>
+<td><b>Corée du Sud</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-A"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-B"><div class="card"><h2>Groupe B</h2><p><b>Équipes :</b> Canada • Suisse • Qatar • Bosnie-Herzégovine</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>3</td><td>12/06</td><td class="hide-mobile">15:00</td><td><b>Canada</b></td>
+<td><input class="score" id="s3a" type="number" min="0" inputmode="numeric" oninput="setScore(3,'a',this.value)"> - <input class="score" id="s3b" type="number" min="0" inputmode="numeric" oninput="setScore(3,'b',this.value)"></td>
+<td><b>Bosnie-Herzégovine</b></td></tr><tr>
+<td>8</td><td>13/06</td><td class="hide-mobile">12:00</td><td><b>Qatar</b></td>
+<td><input class="score" id="s8a" type="number" min="0" inputmode="numeric" oninput="setScore(8,'a',this.value)"> - <input class="score" id="s8b" type="number" min="0" inputmode="numeric" oninput="setScore(8,'b',this.value)"></td>
+<td><b>Suisse</b></td></tr><tr>
+<td>26</td><td>18/06</td><td class="hide-mobile">12:00</td><td><b>Suisse</b></td>
+<td><input class="score" id="s26a" type="number" min="0" inputmode="numeric" oninput="setScore(26,'a',this.value)"> - <input class="score" id="s26b" type="number" min="0" inputmode="numeric" oninput="setScore(26,'b',this.value)"></td>
+<td><b>Bosnie-Herzégovine</b></td></tr><tr>
+<td>27</td><td>18/06</td><td class="hide-mobile">15:00</td><td><b>Canada</b></td>
+<td><input class="score" id="s27a" type="number" min="0" inputmode="numeric" oninput="setScore(27,'a',this.value)"> - <input class="score" id="s27b" type="number" min="0" inputmode="numeric" oninput="setScore(27,'b',this.value)"></td>
+<td><b>Qatar</b></td></tr><tr>
+<td>51</td><td>24/06</td><td class="hide-mobile">12:00</td><td><b>Suisse</b></td>
+<td><input class="score" id="s51a" type="number" min="0" inputmode="numeric" oninput="setScore(51,'a',this.value)"> - <input class="score" id="s51b" type="number" min="0" inputmode="numeric" oninput="setScore(51,'b',this.value)"></td>
+<td><b>Canada</b></td></tr><tr>
+<td>52</td><td>24/06</td><td class="hide-mobile">12:00</td><td><b>Bosnie-Herzégovine</b></td>
+<td><input class="score" id="s52a" type="number" min="0" inputmode="numeric" oninput="setScore(52,'a',this.value)"> - <input class="score" id="s52b" type="number" min="0" inputmode="numeric" oninput="setScore(52,'b',this.value)"></td>
+<td><b>Qatar</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-B"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-C"><div class="card"><h2>Groupe C</h2><p><b>Équipes :</b> Brésil • Maroc • Haïti • Écosse</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>5</td><td>13/06</td><td class="hide-mobile">21:00</td><td><b>Haïti</b></td>
+<td><input class="score" id="s5a" type="number" min="0" inputmode="numeric" oninput="setScore(5,'a',this.value)"> - <input class="score" id="s5b" type="number" min="0" inputmode="numeric" oninput="setScore(5,'b',this.value)"></td>
+<td><b>Écosse</b></td></tr><tr>
+<td>7</td><td>13/06</td><td class="hide-mobile">18:00</td><td><b>Brésil</b></td>
+<td><input class="score" id="s7a" type="number" min="0" inputmode="numeric" oninput="setScore(7,'a',this.value)"> - <input class="score" id="s7b" type="number" min="0" inputmode="numeric" oninput="setScore(7,'b',this.value)"></td>
+<td><b>Maroc</b></td></tr><tr>
+<td>29</td><td>19/06</td><td class="hide-mobile">21:00</td><td><b>Brésil</b></td>
+<td><input class="score" id="s29a" type="number" min="0" inputmode="numeric" oninput="setScore(29,'a',this.value)"> - <input class="score" id="s29b" type="number" min="0" inputmode="numeric" oninput="setScore(29,'b',this.value)"></td>
+<td><b>Haïti</b></td></tr><tr>
+<td>30</td><td>19/06</td><td class="hide-mobile">18:00</td><td><b>Écosse</b></td>
+<td><input class="score" id="s30a" type="number" min="0" inputmode="numeric" oninput="setScore(30,'a',this.value)"> - <input class="score" id="s30b" type="number" min="0" inputmode="numeric" oninput="setScore(30,'b',this.value)"></td>
+<td><b>Maroc</b></td></tr><tr>
+<td>49</td><td>24/06</td><td class="hide-mobile">18:00</td><td><b>Écosse</b></td>
+<td><input class="score" id="s49a" type="number" min="0" inputmode="numeric" oninput="setScore(49,'a',this.value)"> - <input class="score" id="s49b" type="number" min="0" inputmode="numeric" oninput="setScore(49,'b',this.value)"></td>
+<td><b>Brésil</b></td></tr><tr>
+<td>50</td><td>24/06</td><td class="hide-mobile">18:00</td><td><b>Maroc</b></td>
+<td><input class="score" id="s50a" type="number" min="0" inputmode="numeric" oninput="setScore(50,'a',this.value)"> - <input class="score" id="s50b" type="number" min="0" inputmode="numeric" oninput="setScore(50,'b',this.value)"></td>
+<td><b>Haïti</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-C"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-D"><div class="card"><h2>Groupe D</h2><p><b>Équipes :</b> États-Unis • Paraguay • Australie • Turquie</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>4</td><td>12/06</td><td class="hide-mobile">18:00</td><td><b>États-Unis</b></td>
+<td><input class="score" id="s4a" type="number" min="0" inputmode="numeric" oninput="setScore(4,'a',this.value)"> - <input class="score" id="s4b" type="number" min="0" inputmode="numeric" oninput="setScore(4,'b',this.value)"></td>
+<td><b>Paraguay</b></td></tr><tr>
+<td>6</td><td>13/06</td><td class="hide-mobile">21:00</td><td><b>Australie</b></td>
+<td><input class="score" id="s6a" type="number" min="0" inputmode="numeric" oninput="setScore(6,'a',this.value)"> - <input class="score" id="s6b" type="number" min="0" inputmode="numeric" oninput="setScore(6,'b',this.value)"></td>
+<td><b>Turquie</b></td></tr><tr>
+<td>31</td><td>19/06</td><td class="hide-mobile">20:00</td><td><b>Turquie</b></td>
+<td><input class="score" id="s31a" type="number" min="0" inputmode="numeric" oninput="setScore(31,'a',this.value)"> - <input class="score" id="s31b" type="number" min="0" inputmode="numeric" oninput="setScore(31,'b',this.value)"></td>
+<td><b>Paraguay</b></td></tr><tr>
+<td>32</td><td>19/06</td><td class="hide-mobile">12:00</td><td><b>États-Unis</b></td>
+<td><input class="score" id="s32a" type="number" min="0" inputmode="numeric" oninput="setScore(32,'a',this.value)"> - <input class="score" id="s32b" type="number" min="0" inputmode="numeric" oninput="setScore(32,'b',this.value)"></td>
+<td><b>Australie</b></td></tr><tr>
+<td>59</td><td>25/06</td><td class="hide-mobile">19:00</td><td><b>Turquie</b></td>
+<td><input class="score" id="s59a" type="number" min="0" inputmode="numeric" oninput="setScore(59,'a',this.value)"> - <input class="score" id="s59b" type="number" min="0" inputmode="numeric" oninput="setScore(59,'b',this.value)"></td>
+<td><b>États-Unis</b></td></tr><tr>
+<td>60</td><td>25/06</td><td class="hide-mobile">19:00</td><td><b>Paraguay</b></td>
+<td><input class="score" id="s60a" type="number" min="0" inputmode="numeric" oninput="setScore(60,'a',this.value)"> - <input class="score" id="s60b" type="number" min="0" inputmode="numeric" oninput="setScore(60,'b',this.value)"></td>
+<td><b>Australie</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-D"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-E"><div class="card"><h2>Groupe E</h2><p><b>Équipes :</b> Allemagne • Curaçao • Côte d’Ivoire • Équateur</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>9</td><td>14/06</td><td class="hide-mobile">19:00</td><td><b>Côte d’Ivoire</b></td>
+<td><input class="score" id="s9a" type="number" min="0" inputmode="numeric" oninput="setScore(9,'a',this.value)"> - <input class="score" id="s9b" type="number" min="0" inputmode="numeric" oninput="setScore(9,'b',this.value)"></td>
+<td><b>Équateur</b></td></tr><tr>
+<td>10</td><td>14/06</td><td class="hide-mobile">12:00</td><td><b>Allemagne</b></td>
+<td><input class="score" id="s10a" type="number" min="0" inputmode="numeric" oninput="setScore(10,'a',this.value)"> - <input class="score" id="s10b" type="number" min="0" inputmode="numeric" oninput="setScore(10,'b',this.value)"></td>
+<td><b>Curaçao</b></td></tr><tr>
+<td>33</td><td>20/06</td><td class="hide-mobile">16:00</td><td><b>Allemagne</b></td>
+<td><input class="score" id="s33a" type="number" min="0" inputmode="numeric" oninput="setScore(33,'a',this.value)"> - <input class="score" id="s33b" type="number" min="0" inputmode="numeric" oninput="setScore(33,'b',this.value)"></td>
+<td><b>Côte d’Ivoire</b></td></tr><tr>
+<td>34</td><td>20/06</td><td class="hide-mobile">19:00</td><td><b>Équateur</b></td>
+<td><input class="score" id="s34a" type="number" min="0" inputmode="numeric" oninput="setScore(34,'a',this.value)"> - <input class="score" id="s34b" type="number" min="0" inputmode="numeric" oninput="setScore(34,'b',this.value)"></td>
+<td><b>Curaçao</b></td></tr><tr>
+<td>55</td><td>25/06</td><td class="hide-mobile">16:00</td><td><b>Curaçao</b></td>
+<td><input class="score" id="s55a" type="number" min="0" inputmode="numeric" oninput="setScore(55,'a',this.value)"> - <input class="score" id="s55b" type="number" min="0" inputmode="numeric" oninput="setScore(55,'b',this.value)"></td>
+<td><b>Côte d’Ivoire</b></td></tr><tr>
+<td>56</td><td>25/06</td><td class="hide-mobile">16:00</td><td><b>Équateur</b></td>
+<td><input class="score" id="s56a" type="number" min="0" inputmode="numeric" oninput="setScore(56,'a',this.value)"> - <input class="score" id="s56b" type="number" min="0" inputmode="numeric" oninput="setScore(56,'b',this.value)"></td>
+<td><b>Allemagne</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-E"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-F"><div class="card"><h2>Groupe F</h2><p><b>Équipes :</b> Pays-Bas • Japon • Tunisie • Suède</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>11</td><td>14/06</td><td class="hide-mobile">15:00</td><td><b>Pays-Bas</b></td>
+<td><input class="score" id="s11a" type="number" min="0" inputmode="numeric" oninput="setScore(11,'a',this.value)"> - <input class="score" id="s11b" type="number" min="0" inputmode="numeric" oninput="setScore(11,'b',this.value)"></td>
+<td><b>Japon</b></td></tr><tr>
+<td>12</td><td>14/06</td><td class="hide-mobile">20:00</td><td><b>Suède</b></td>
+<td><input class="score" id="s12a" type="number" min="0" inputmode="numeric" oninput="setScore(12,'a',this.value)"> - <input class="score" id="s12b" type="number" min="0" inputmode="numeric" oninput="setScore(12,'b',this.value)"></td>
+<td><b>Tunisie</b></td></tr><tr>
+<td>35</td><td>20/06</td><td class="hide-mobile">12:00</td><td><b>Pays-Bas</b></td>
+<td><input class="score" id="s35a" type="number" min="0" inputmode="numeric" oninput="setScore(35,'a',this.value)"> - <input class="score" id="s35b" type="number" min="0" inputmode="numeric" oninput="setScore(35,'b',this.value)"></td>
+<td><b>Suède</b></td></tr><tr>
+<td>36</td><td>20/06</td><td class="hide-mobile">22:00</td><td><b>Tunisie</b></td>
+<td><input class="score" id="s36a" type="number" min="0" inputmode="numeric" oninput="setScore(36,'a',this.value)"> - <input class="score" id="s36b" type="number" min="0" inputmode="numeric" oninput="setScore(36,'b',this.value)"></td>
+<td><b>Japon</b></td></tr><tr>
+<td>57</td><td>25/06</td><td class="hide-mobile">18:00</td><td><b>Japon</b></td>
+<td><input class="score" id="s57a" type="number" min="0" inputmode="numeric" oninput="setScore(57,'a',this.value)"> - <input class="score" id="s57b" type="number" min="0" inputmode="numeric" oninput="setScore(57,'b',this.value)"></td>
+<td><b>Suède</b></td></tr><tr>
+<td>58</td><td>25/06</td><td class="hide-mobile">18:00</td><td><b>Tunisie</b></td>
+<td><input class="score" id="s58a" type="number" min="0" inputmode="numeric" oninput="setScore(58,'a',this.value)"> - <input class="score" id="s58b" type="number" min="0" inputmode="numeric" oninput="setScore(58,'b',this.value)"></td>
+<td><b>Pays-Bas</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-F"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-G"><div class="card"><h2>Groupe G</h2><p><b>Équipes :</b> Belgique • Égypte • Iran • Nouvelle-Zélande</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>15</td><td>15/06</td><td class="hide-mobile">18:00</td><td><b>Iran</b></td>
+<td><input class="score" id="s15a" type="number" min="0" inputmode="numeric" oninput="setScore(15,'a',this.value)"> - <input class="score" id="s15b" type="number" min="0" inputmode="numeric" oninput="setScore(15,'b',this.value)"></td>
+<td><b>Nouvelle-Zélande</b></td></tr><tr>
+<td>16</td><td>15/06</td><td class="hide-mobile">12:00</td><td><b>Belgique</b></td>
+<td><input class="score" id="s16a" type="number" min="0" inputmode="numeric" oninput="setScore(16,'a',this.value)"> - <input class="score" id="s16b" type="number" min="0" inputmode="numeric" oninput="setScore(16,'b',this.value)"></td>
+<td><b>Égypte</b></td></tr><tr>
+<td>39</td><td>21/06</td><td class="hide-mobile">12:00</td><td><b>Belgique</b></td>
+<td><input class="score" id="s39a" type="number" min="0" inputmode="numeric" oninput="setScore(39,'a',this.value)"> - <input class="score" id="s39b" type="number" min="0" inputmode="numeric" oninput="setScore(39,'b',this.value)"></td>
+<td><b>Iran</b></td></tr><tr>
+<td>40</td><td>21/06</td><td class="hide-mobile">18:00</td><td><b>Nouvelle-Zélande</b></td>
+<td><input class="score" id="s40a" type="number" min="0" inputmode="numeric" oninput="setScore(40,'a',this.value)"> - <input class="score" id="s40b" type="number" min="0" inputmode="numeric" oninput="setScore(40,'b',this.value)"></td>
+<td><b>Égypte</b></td></tr><tr>
+<td>63</td><td>26/06</td><td class="hide-mobile">20:00</td><td><b>Égypte</b></td>
+<td><input class="score" id="s63a" type="number" min="0" inputmode="numeric" oninput="setScore(63,'a',this.value)"> - <input class="score" id="s63b" type="number" min="0" inputmode="numeric" oninput="setScore(63,'b',this.value)"></td>
+<td><b>Iran</b></td></tr><tr>
+<td>64</td><td>26/06</td><td class="hide-mobile">20:00</td><td><b>Nouvelle-Zélande</b></td>
+<td><input class="score" id="s64a" type="number" min="0" inputmode="numeric" oninput="setScore(64,'a',this.value)"> - <input class="score" id="s64b" type="number" min="0" inputmode="numeric" oninput="setScore(64,'b',this.value)"></td>
+<td><b>Belgique</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-G"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-H"><div class="card"><h2>Groupe H</h2><p><b>Équipes :</b> Espagne • Cap-Vert • Arabie saoudite • Uruguay</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>13</td><td>15/06</td><td class="hide-mobile">18:00</td><td><b>Arabie saoudite</b></td>
+<td><input class="score" id="s13a" type="number" min="0" inputmode="numeric" oninput="setScore(13,'a',this.value)"> - <input class="score" id="s13b" type="number" min="0" inputmode="numeric" oninput="setScore(13,'b',this.value)"></td>
+<td><b>Uruguay</b></td></tr><tr>
+<td>14</td><td>15/06</td><td class="hide-mobile">12:00</td><td><b>Espagne</b></td>
+<td><input class="score" id="s14a" type="number" min="0" inputmode="numeric" oninput="setScore(14,'a',this.value)"> - <input class="score" id="s14b" type="number" min="0" inputmode="numeric" oninput="setScore(14,'b',this.value)"></td>
+<td><b>Cap-Vert</b></td></tr><tr>
+<td>37</td><td>21/06</td><td class="hide-mobile">18:00</td><td><b>Uruguay</b></td>
+<td><input class="score" id="s37a" type="number" min="0" inputmode="numeric" oninput="setScore(37,'a',this.value)"> - <input class="score" id="s37b" type="number" min="0" inputmode="numeric" oninput="setScore(37,'b',this.value)"></td>
+<td><b>Cap-Vert</b></td></tr><tr>
+<td>38</td><td>21/06</td><td class="hide-mobile">12:00</td><td><b>Espagne</b></td>
+<td><input class="score" id="s38a" type="number" min="0" inputmode="numeric" oninput="setScore(38,'a',this.value)"> - <input class="score" id="s38b" type="number" min="0" inputmode="numeric" oninput="setScore(38,'b',this.value)"></td>
+<td><b>Arabie saoudite</b></td></tr><tr>
+<td>65</td><td>26/06</td><td class="hide-mobile">19:00</td><td><b>Cap-Vert</b></td>
+<td><input class="score" id="s65a" type="number" min="0" inputmode="numeric" oninput="setScore(65,'a',this.value)"> - <input class="score" id="s65b" type="number" min="0" inputmode="numeric" oninput="setScore(65,'b',this.value)"></td>
+<td><b>Arabie saoudite</b></td></tr><tr>
+<td>66</td><td>26/06</td><td class="hide-mobile">18:00</td><td><b>Uruguay</b></td>
+<td><input class="score" id="s66a" type="number" min="0" inputmode="numeric" oninput="setScore(66,'a',this.value)"> - <input class="score" id="s66b" type="number" min="0" inputmode="numeric" oninput="setScore(66,'b',this.value)"></td>
+<td><b>Espagne</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-H"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-I"><div class="card"><h2>Groupe I</h2><p><b>Équipes :</b> France • Sénégal • Norvège • Irak</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>17</td><td>16/06</td><td class="hide-mobile">15:00</td><td><b>France</b></td>
+<td><input class="score" id="s17a" type="number" min="0" inputmode="numeric" oninput="setScore(17,'a',this.value)"> - <input class="score" id="s17b" type="number" min="0" inputmode="numeric" oninput="setScore(17,'b',this.value)"></td>
+<td><b>Sénégal</b></td></tr><tr>
+<td>18</td><td>16/06</td><td class="hide-mobile">18:00</td><td><b>Irak</b></td>
+<td><input class="score" id="s18a" type="number" min="0" inputmode="numeric" oninput="setScore(18,'a',this.value)"> - <input class="score" id="s18b" type="number" min="0" inputmode="numeric" oninput="setScore(18,'b',this.value)"></td>
+<td><b>Norvège</b></td></tr><tr>
+<td>41</td><td>22/06</td><td class="hide-mobile">20:00</td><td><b>Norvège</b></td>
+<td><input class="score" id="s41a" type="number" min="0" inputmode="numeric" oninput="setScore(41,'a',this.value)"> - <input class="score" id="s41b" type="number" min="0" inputmode="numeric" oninput="setScore(41,'b',this.value)"></td>
+<td><b>Sénégal</b></td></tr><tr>
+<td>42</td><td>22/06</td><td class="hide-mobile">17:00</td><td><b>France</b></td>
+<td><input class="score" id="s42a" type="number" min="0" inputmode="numeric" oninput="setScore(42,'a',this.value)"> - <input class="score" id="s42b" type="number" min="0" inputmode="numeric" oninput="setScore(42,'b',this.value)"></td>
+<td><b>Irak</b></td></tr><tr>
+<td>61</td><td>26/06</td><td class="hide-mobile">15:00</td><td><b>Norvège</b></td>
+<td><input class="score" id="s61a" type="number" min="0" inputmode="numeric" oninput="setScore(61,'a',this.value)"> - <input class="score" id="s61b" type="number" min="0" inputmode="numeric" oninput="setScore(61,'b',this.value)"></td>
+<td><b>France</b></td></tr><tr>
+<td>62</td><td>26/06</td><td class="hide-mobile">15:00</td><td><b>Sénégal</b></td>
+<td><input class="score" id="s62a" type="number" min="0" inputmode="numeric" oninput="setScore(62,'a',this.value)"> - <input class="score" id="s62b" type="number" min="0" inputmode="numeric" oninput="setScore(62,'b',this.value)"></td>
+<td><b>Irak</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-I"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-J"><div class="card"><h2>Groupe J</h2><p><b>Équipes :</b> Argentine • Algérie • Autriche • Jordanie</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>19</td><td>16/06</td><td class="hide-mobile">20:00</td><td><b>Argentine</b></td>
+<td><input class="score" id="s19a" type="number" min="0" inputmode="numeric" oninput="setScore(19,'a',this.value)"> - <input class="score" id="s19b" type="number" min="0" inputmode="numeric" oninput="setScore(19,'b',this.value)"></td>
+<td><b>Algérie</b></td></tr><tr>
+<td>20</td><td>16/06</td><td class="hide-mobile">21:00</td><td><b>Autriche</b></td>
+<td><input class="score" id="s20a" type="number" min="0" inputmode="numeric" oninput="setScore(20,'a',this.value)"> - <input class="score" id="s20b" type="number" min="0" inputmode="numeric" oninput="setScore(20,'b',this.value)"></td>
+<td><b>Jordanie</b></td></tr><tr>
+<td>43</td><td>22/06</td><td class="hide-mobile">12:00</td><td><b>Argentine</b></td>
+<td><input class="score" id="s43a" type="number" min="0" inputmode="numeric" oninput="setScore(43,'a',this.value)"> - <input class="score" id="s43b" type="number" min="0" inputmode="numeric" oninput="setScore(43,'b',this.value)"></td>
+<td><b>Autriche</b></td></tr><tr>
+<td>44</td><td>22/06</td><td class="hide-mobile">20:00</td><td><b>Jordanie</b></td>
+<td><input class="score" id="s44a" type="number" min="0" inputmode="numeric" oninput="setScore(44,'a',this.value)"> - <input class="score" id="s44b" type="number" min="0" inputmode="numeric" oninput="setScore(44,'b',this.value)"></td>
+<td><b>Algérie</b></td></tr><tr>
+<td>69</td><td>27/06</td><td class="hide-mobile">21:00</td><td><b>Algérie</b></td>
+<td><input class="score" id="s69a" type="number" min="0" inputmode="numeric" oninput="setScore(69,'a',this.value)"> - <input class="score" id="s69b" type="number" min="0" inputmode="numeric" oninput="setScore(69,'b',this.value)"></td>
+<td><b>Autriche</b></td></tr><tr>
+<td>70</td><td>27/06</td><td class="hide-mobile">21:00</td><td><b>Jordanie</b></td>
+<td><input class="score" id="s70a" type="number" min="0" inputmode="numeric" oninput="setScore(70,'a',this.value)"> - <input class="score" id="s70b" type="number" min="0" inputmode="numeric" oninput="setScore(70,'b',this.value)"></td>
+<td><b>Argentine</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-J"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-K"><div class="card"><h2>Groupe K</h2><p><b>Équipes :</b> Portugal • Ouzbékistan • Colombie • RD Congo</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>23</td><td>17/06</td><td class="hide-mobile">12:00</td><td><b>Portugal</b></td>
+<td><input class="score" id="s23a" type="number" min="0" inputmode="numeric" oninput="setScore(23,'a',this.value)"> - <input class="score" id="s23b" type="number" min="0" inputmode="numeric" oninput="setScore(23,'b',this.value)"></td>
+<td><b>RD Congo</b></td></tr><tr>
+<td>24</td><td>17/06</td><td class="hide-mobile">20:00</td><td><b>Ouzbékistan</b></td>
+<td><input class="score" id="s24a" type="number" min="0" inputmode="numeric" oninput="setScore(24,'a',this.value)"> - <input class="score" id="s24b" type="number" min="0" inputmode="numeric" oninput="setScore(24,'b',this.value)"></td>
+<td><b>Colombie</b></td></tr><tr>
+<td>47</td><td>23/06</td><td class="hide-mobile">12:00</td><td><b>Portugal</b></td>
+<td><input class="score" id="s47a" type="number" min="0" inputmode="numeric" oninput="setScore(47,'a',this.value)"> - <input class="score" id="s47b" type="number" min="0" inputmode="numeric" oninput="setScore(47,'b',this.value)"></td>
+<td><b>Ouzbékistan</b></td></tr><tr>
+<td>48</td><td>23/06</td><td class="hide-mobile">20:00</td><td><b>Colombie</b></td>
+<td><input class="score" id="s48a" type="number" min="0" inputmode="numeric" oninput="setScore(48,'a',this.value)"> - <input class="score" id="s48b" type="number" min="0" inputmode="numeric" oninput="setScore(48,'b',this.value)"></td>
+<td><b>RD Congo</b></td></tr><tr>
+<td>71</td><td>27/06</td><td class="hide-mobile">19:30</td><td><b>Colombie</b></td>
+<td><input class="score" id="s71a" type="number" min="0" inputmode="numeric" oninput="setScore(71,'a',this.value)"> - <input class="score" id="s71b" type="number" min="0" inputmode="numeric" oninput="setScore(71,'b',this.value)"></td>
+<td><b>Portugal</b></td></tr><tr>
+<td>72</td><td>27/06</td><td class="hide-mobile">19:30</td><td><b>RD Congo</b></td>
+<td><input class="score" id="s72a" type="number" min="0" inputmode="numeric" oninput="setScore(72,'a',this.value)"> - <input class="score" id="s72b" type="number" min="0" inputmode="numeric" oninput="setScore(72,'b',this.value)"></td>
+<td><b>Ouzbékistan</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-K"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section><section class="page page-L"><div class="card"><h2>Groupe L</h2><p><b>Équipes :</b> Angleterre • Croatie • Ghana • Panama</p><div class="two"><div><h3>Matchs à remplir</h3><table><thead><tr><th>N°</th><th>Date</th><th class="hide-mobile">Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody><tr>
+<td>21</td><td>17/06</td><td class="hide-mobile">19:00</td><td><b>Ghana</b></td>
+<td><input class="score" id="s21a" type="number" min="0" inputmode="numeric" oninput="setScore(21,'a',this.value)"> - <input class="score" id="s21b" type="number" min="0" inputmode="numeric" oninput="setScore(21,'b',this.value)"></td>
+<td><b>Panama</b></td></tr><tr>
+<td>22</td><td>17/06</td><td class="hide-mobile">15:00</td><td><b>Angleterre</b></td>
+<td><input class="score" id="s22a" type="number" min="0" inputmode="numeric" oninput="setScore(22,'a',this.value)"> - <input class="score" id="s22b" type="number" min="0" inputmode="numeric" oninput="setScore(22,'b',this.value)"></td>
+<td><b>Croatie</b></td></tr><tr>
+<td>45</td><td>23/06</td><td class="hide-mobile">16:00</td><td><b>Angleterre</b></td>
+<td><input class="score" id="s45a" type="number" min="0" inputmode="numeric" oninput="setScore(45,'a',this.value)"> - <input class="score" id="s45b" type="number" min="0" inputmode="numeric" oninput="setScore(45,'b',this.value)"></td>
+<td><b>Ghana</b></td></tr><tr>
+<td>46</td><td>23/06</td><td class="hide-mobile">19:00</td><td><b>Panama</b></td>
+<td><input class="score" id="s46a" type="number" min="0" inputmode="numeric" oninput="setScore(46,'a',this.value)"> - <input class="score" id="s46b" type="number" min="0" inputmode="numeric" oninput="setScore(46,'b',this.value)"></td>
+<td><b>Croatie</b></td></tr><tr>
+<td>67</td><td>27/06</td><td class="hide-mobile">17:00</td><td><b>Panama</b></td>
+<td><input class="score" id="s67a" type="number" min="0" inputmode="numeric" oninput="setScore(67,'a',this.value)"> - <input class="score" id="s67b" type="number" min="0" inputmode="numeric" oninput="setScore(67,'b',this.value)"></td>
+<td><b>Angleterre</b></td></tr><tr>
+<td>68</td><td>27/06</td><td class="hide-mobile">17:00</td><td><b>Croatie</b></td>
+<td><input class="score" id="s68a" type="number" min="0" inputmode="numeric" oninput="setScore(68,'a',this.value)"> - <input class="score" id="s68b" type="number" min="0" inputmode="numeric" oninput="setScore(68,'b',this.value)"></td>
+<td><b>Ghana</b></td></tr></tbody></table></div><div><h3>Classement automatique</h3><table><thead><tr><th>Rang</th><th>Équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody id="rank-L"></tbody></table><p class="small">Vert = qualifié automatiquement.</p></div></div></div></section>
+<section class="page page-phase">
+  <div class="card">
+    <h2>Phase finale</h2>
+    <p class="small">Les 1ers et 2es de groupe apparaîtront automatiquement uniquement quand tous les matchs du groupe seront remplis. Les meilleurs 3es restent indiqués par zone car cela dépend de la combinaison finale.</p>
+    <table><thead><tr><th>N°</th><th>Tour</th><th>Date</th><th>Heure</th><th>Équipe 1</th><th>Score</th><th>Équipe 2</th></tr></thead><tbody id="koBody"></tbody></table>
+  </div>
+</section>
+
+</div>
+<script>
+const groups = {"A": ["Mexique", "Afrique du Sud", "Corée du Sud", "Tchéquie"], "B": ["Canada", "Suisse", "Qatar", "Bosnie-Herzégovine"], "C": ["Brésil", "Maroc", "Haïti", "Écosse"], "D": ["États-Unis", "Paraguay", "Australie", "Turquie"], "E": ["Allemagne", "Curaçao", "Côte d’Ivoire", "Équateur"], "F": ["Pays-Bas", "Japon", "Tunisie", "Suède"], "G": ["Belgique", "Égypte", "Iran", "Nouvelle-Zélande"], "H": ["Espagne", "Cap-Vert", "Arabie saoudite", "Uruguay"], "I": ["France", "Sénégal", "Norvège", "Irak"], "J": ["Argentine", "Algérie", "Autriche", "Jordanie"], "K": ["Portugal", "Ouzbékistan", "Colombie", "RD Congo"], "L": ["Angleterre", "Croatie", "Ghana", "Panama"]};
+const matches = [[1, "A", "11/06", "13:00", "Mexique", "Afrique du Sud"], [2, "A", "11/06", "20:00", "Corée du Sud", "Tchéquie"], [25, "A", "18/06", "12:00", "Tchéquie", "Afrique du Sud"], [28, "A", "18/06", "19:00", "Mexique", "Corée du Sud"], [53, "A", "24/06", "19:00", "Tchéquie", "Mexique"], [54, "A", "24/06", "19:00", "Afrique du Sud", "Corée du Sud"], [3, "B", "12/06", "15:00", "Canada", "Bosnie-Herzégovine"], [8, "B", "13/06", "12:00", "Qatar", "Suisse"], [26, "B", "18/06", "12:00", "Suisse", "Bosnie-Herzégovine"], [27, "B", "18/06", "15:00", "Canada", "Qatar"], [51, "B", "24/06", "12:00", "Suisse", "Canada"], [52, "B", "24/06", "12:00", "Bosnie-Herzégovine", "Qatar"], [5, "C", "13/06", "21:00", "Haïti", "Écosse"], [7, "C", "13/06", "18:00", "Brésil", "Maroc"], [29, "C", "19/06", "21:00", "Brésil", "Haïti"], [30, "C", "19/06", "18:00", "Écosse", "Maroc"], [49, "C", "24/06", "18:00", "Écosse", "Brésil"], [50, "C", "24/06", "18:00", "Maroc", "Haïti"], [4, "D", "12/06", "18:00", "États-Unis", "Paraguay"], [6, "D", "13/06", "21:00", "Australie", "Turquie"], [31, "D", "19/06", "20:00", "Turquie", "Paraguay"], [32, "D", "19/06", "12:00", "États-Unis", "Australie"], [59, "D", "25/06", "19:00", "Turquie", "États-Unis"], [60, "D", "25/06", "19:00", "Paraguay", "Australie"], [9, "E", "14/06", "19:00", "Côte d’Ivoire", "Équateur"], [10, "E", "14/06", "12:00", "Allemagne", "Curaçao"], [33, "E", "20/06", "16:00", "Allemagne", "Côte d’Ivoire"], [34, "E", "20/06", "19:00", "Équateur", "Curaçao"], [55, "E", "25/06", "16:00", "Curaçao", "Côte d’Ivoire"], [56, "E", "25/06", "16:00", "Équateur", "Allemagne"], [11, "F", "14/06", "15:00", "Pays-Bas", "Japon"], [12, "F", "14/06", "20:00", "Suède", "Tunisie"], [35, "F", "20/06", "12:00", "Pays-Bas", "Suède"], [36, "F", "20/06", "22:00", "Tunisie", "Japon"], [57, "F", "25/06", "18:00", "Japon", "Suède"], [58, "F", "25/06", "18:00", "Tunisie", "Pays-Bas"], [15, "G", "15/06", "18:00", "Iran", "Nouvelle-Zélande"], [16, "G", "15/06", "12:00", "Belgique", "Égypte"], [39, "G", "21/06", "12:00", "Belgique", "Iran"], [40, "G", "21/06", "18:00", "Nouvelle-Zélande", "Égypte"], [63, "G", "26/06", "20:00", "Égypte", "Iran"], [64, "G", "26/06", "20:00", "Nouvelle-Zélande", "Belgique"], [13, "H", "15/06", "18:00", "Arabie saoudite", "Uruguay"], [14, "H", "15/06", "12:00", "Espagne", "Cap-Vert"], [37, "H", "21/06", "18:00", "Uruguay", "Cap-Vert"], [38, "H", "21/06", "12:00", "Espagne", "Arabie saoudite"], [65, "H", "26/06", "19:00", "Cap-Vert", "Arabie saoudite"], [66, "H", "26/06", "18:00", "Uruguay", "Espagne"], [17, "I", "16/06", "15:00", "France", "Sénégal"], [18, "I", "16/06", "18:00", "Irak", "Norvège"], [41, "I", "22/06", "20:00", "Norvège", "Sénégal"], [42, "I", "22/06", "17:00", "France", "Irak"], [61, "I", "26/06", "15:00", "Norvège", "France"], [62, "I", "26/06", "15:00", "Sénégal", "Irak"], [19, "J", "16/06", "20:00", "Argentine", "Algérie"], [20, "J", "16/06", "21:00", "Autriche", "Jordanie"], [43, "J", "22/06", "12:00", "Argentine", "Autriche"], [44, "J", "22/06", "20:00", "Jordanie", "Algérie"], [69, "J", "27/06", "21:00", "Algérie", "Autriche"], [70, "J", "27/06", "21:00", "Jordanie", "Argentine"], [23, "K", "17/06", "12:00", "Portugal", "RD Congo"], [24, "K", "17/06", "20:00", "Ouzbékistan", "Colombie"], [47, "K", "23/06", "12:00", "Portugal", "Ouzbékistan"], [48, "K", "23/06", "20:00", "Colombie", "RD Congo"], [71, "K", "27/06", "19:30", "Colombie", "Portugal"], [72, "K", "27/06", "19:30", "RD Congo", "Ouzbékistan"], [21, "L", "17/06", "19:00", "Ghana", "Panama"], [22, "L", "17/06", "15:00", "Angleterre", "Croatie"], [45, "L", "23/06", "16:00", "Angleterre", "Ghana"], [46, "L", "23/06", "19:00", "Panama", "Croatie"], [67, "L", "27/06", "17:00", "Panama", "Angleterre"], [68, "L", "27/06", "17:00", "Croatie", "Ghana"]];
+const ko = [[73, "16ème", "28/06", "12:00", "2e groupe A", "2e groupe B"], [74, "16ème", "29/06", "16:30", "1er groupe E", "Meilleur 3e A/B/C/D/F"], [75, "16ème", "29/06", "19:00", "1er groupe F", "2e groupe C"], [76, "16ème", "29/06", "12:00", "1er groupe C", "2e groupe F"], [77, "16ème", "30/06", "17:00", "1er groupe I", "Meilleur 3e C/D/F/G/H"], [78, "16ème", "30/06", "12:00", "2e groupe E", "2e groupe I"], [79, "16ème", "30/06", "19:00", "1er groupe A", "Meilleur 3e C/E/F/H/I"], [80, "16ème", "01/07", "12:00", "1er groupe L", "Meilleur 3e E/H/I/J/K"], [81, "16ème", "01/07", "17:00", "1er groupe D", "Meilleur 3e B/E/F/I/J"], [82, "16ème", "01/07", "13:00", "1er groupe G", "Meilleur 3e A/E/H/I/J"], [83, "16ème", "02/07", "19:00", "2e groupe K", "2e groupe L"], [84, "16ème", "02/07", "12:00", "1er groupe H", "2e groupe J"], [85, "16ème", "02/07", "20:00", "1er groupe B", "Meilleur 3e E/F/G/I/J"], [86, "16ème", "03/07", "18:00", "1er groupe J", "2e groupe H"], [87, "16ème", "03/07", "20:30", "1er groupe K", "Meilleur 3e D/E/I/J/L"], [88, "16ème", "03/07", "13:00", "2e groupe D", "2e groupe G"], [89, "8ème", "04/07", "17:00", "Vainqueur 74", "Vainqueur 77"], [90, "8ème", "04/07", "12:00", "Vainqueur 73", "Vainqueur 75"], [91, "8ème", "05/07", "16:00", "Vainqueur 76", "Vainqueur 78"], [92, "8ème", "05/07", "18:00", "Vainqueur 79", "Vainqueur 80"], [93, "8ème", "06/07", "14:00", "Vainqueur 83", "Vainqueur 84"], [94, "8ème", "06/07", "17:00", "Vainqueur 81", "Vainqueur 82"], [95, "8ème", "07/07", "12:00", "Vainqueur 86", "Vainqueur 88"], [96, "8ème", "07/07", "13:00", "Vainqueur 85", "Vainqueur 87"], [97, "Quarts", "09/07", "16:00", "Vainqueur 89", "Vainqueur 90"], [98, "Quarts", "10/07", "12:00", "Vainqueur 93", "Vainqueur 94"], [99, "Quarts", "11/07", "17:00", "Vainqueur 91", "Vainqueur 92"], [100, "Quarts", "11/07", "20:00", "Vainqueur 95", "Vainqueur 96"], [101, "Demi-finales", "14/07", "14:00", "Vainqueur 97", "Vainqueur 98"], [102, "Demi-finales", "15/07", "15:00", "Vainqueur 99", "Vainqueur 100"], [103, "3e place", "18/07", "17:00", "Perdant 101", "Perdant 102"], [104, "Finale", "19/07", "15:00", "Vainqueur 101", "Vainqueur 102"]];
+const STORAGE_KEY = "cdm2026_scores_css_tabs";
+
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e) { return {}; }
+}
+function saveScores(scores) { localStorage.setItem(STORAGE_KEY, JSON.stringify(scores)); }
+function getScore(id, side) { const s = loadScores(); return s[id]?.[side] ?? ""; }
+function setScore(id, side, value) {
+  const s = loadScores();
+  if(!s[id]) s[id] = {};
+  s[id][side] = value;
+  saveScores(s);
+  updateAll();
+}
+function clearScores() {
+  if(confirm("Effacer tous les scores enregistrés ?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    updateAll();
+  }
+}
+function statsForGroup(g) {
+  const teams = {};
+  groups[g].forEach(t => teams[t] = {team:t,J:0,G:0,N:0,P:0,BP:0,BC:0,Diff:0,Pts:0});
+  matches.filter(m => m[1] === g).forEach(m => {
+    let a = getScore(m[0], "a"), b = getScore(m[0], "b");
+    if(a === "" || b === "" || isNaN(parseInt(a)) || isNaN(parseInt(b))) return;
+    a = parseInt(a); b = parseInt(b);
+    let t1 = teams[m[4]], t2 = teams[m[5]];
+    t1.J++; t2.J++; t1.BP += a; t1.BC += b; t2.BP += b; t2.BC += a;
+    if(a > b) { t1.G++; t2.P++; t1.Pts += 3; }
+    else if(a < b) { t2.G++; t1.P++; t2.Pts += 3; }
+    else { t1.N++; t2.N++; t1.Pts++; t2.Pts++; }
+  });
+  Object.values(teams).forEach(t => t.Diff = t.BP - t.BC);
+  return Object.values(teams).sort((a,b) => b.Pts-a.Pts || b.Diff-a.Diff || b.BP-a.BP || a.team.localeCompare(b.team));
+}
+function groupIsComplete(g) {
+  return matches.filter(m => m[1] === g).every(m => {
+    const a = getScore(m[0], "a");
+    const b = getScore(m[0], "b");
+    return a !== "" && b !== "" && !isNaN(parseInt(a)) && !isNaN(parseInt(b));
+  });
+}
+function labelToTeam(label) {
+  const m1 = label.match(/1er groupe ([A-L])/);
+  const m2 = label.match(/2e groupe ([A-L])/);
+  if(m1) {
+    const g = m1[1];
+    if(!groupIsComplete(g)) return label;
+    return statsForGroup(g)[0]?.team || label;
+  }
+  if(m2) {
+    const g = m2[1];
+    if(!groupIsComplete(g)) return label;
+    return statsForGroup(g)[1]?.team || label;
+  }
+  return label;
+}
+function updateInputs() {
+  matches.concat(ko).forEach(m => {
+    const a = document.getElementById("s" + m[0] + "a");
+    const b = document.getElementById("s" + m[0] + "b");
+    if(a) a.value = getScore(m[0], "a");
+    if(b) b.value = getScore(m[0], "b");
+  });
+}
+function updateRanks() {
+  Object.keys(groups).forEach(g => {
+    const body = document.getElementById("rank-" + g);
+    if(!body) return;
+    body.innerHTML = "";
+    statsForGroup(g).forEach((t, i) => {
+      body.innerHTML += `<tr class="${i < 2 ? "rank-" + (i+1) : ""}"><td>${i+1}</td><td>${t.team}</td><td>${t.J}</td><td>${t.G}</td><td>${t.N}</td><td>${t.P}</td><td>${t.BP}</td><td>${t.BC}</td><td>${t.Diff}</td><td><b>${t.Pts}</b></td></tr>`;
+    });
+  });
+}
+function updateKO() {
+  const body = document.getElementById("koBody");
+  if(!body) return;
+  body.innerHTML = "";
+  ko.forEach(m => {
+    const t1 = labelToTeam(m[4]);
+    const t2 = labelToTeam(m[5]);
+    body.innerHTML += `<tr><td>${m[0]}</td><td>${m[1]}</td><td>${m[2]}</td><td>${m[3]}</td><td class="ko-team">${t1}</td><td><input class="score" id="s${m[0]}a" type="number" min="0" inputmode="numeric" oninput="setScore(${m[0]},'a',this.value)"> - <input class="score" id="s${m[0]}b" type="number" min="0" inputmode="numeric" oninput="setScore(${m[0]},'b',this.value)"></td><td class="ko-team">${t2}</td></tr>`;
+  });
+}
+function updateAll() {
+  updateKO();
+  updateInputs();
+  updateRanks();
+}
+updateAll();
+</script>
+
+<script id="multi-user-live-js">
+const SUPABASE_URL = "https://czgqotntoiglzovdflrl.supabase.co";
+const WORKER_URL = "https://dawn-forest-5aab.rayannbouakkaz475.workers.dev";
+
+// IMPORTANT : remplace cette valeur par ta Publishable Key Supabase dans GitHub.
+// Elle commence par sb_publish...
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_N516qOMxG81dKJq6BxAScg_UxH6ii9m";
+
+let supabaseClient = null;
+let currentUser = null;
+
+function initSupabaseClient() {
+  if (!window.supabase) {
+    console.warn("Supabase SDK non chargé.");
+    return null;
+  }
+  if (!SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY.includes("REMPLACE_MOI")) {
+    document.getElementById("syncStatus")?.replaceChildren(document.createTextNode("Clé Supabase publique à renseigner"));
+    console.warn("Publishable key Supabase manquante.");
+    return null;
+  }
+  if (!supabaseClient) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  }
+  return supabaseClient;
+}
+
+function setSyncStatus(txt) {
+  const el = document.getElementById("syncStatus");
+  if (el) el.textContent = txt;
+}
+
+async function refreshAuthState() {
+  const client = initSupabaseClient();
+  if (!client) return;
+  const { data } = await client.auth.getUser();
+  currentUser = data?.user || null;
+  const out = document.getElementById("authLoggedOut");
+  const inn = document.getElementById("authLoggedIn");
+  const email = document.getElementById("currentUserEmail");
+  if (currentUser) {
+    if (out) out.style.display = "none";
+    if (inn) inn.style.display = "block";
+    if (email) email.textContent = currentUser.email || "";
+  } else {
+    if (out) out.style.display = "block";
+    if (inn) inn.style.display = "none";
+  }
+}
+
+async function signUpUser() {
+  const client = initSupabaseClient();
+  if (!client) return alert("Clé Supabase publique manquante.");
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  if (!email || !password) return alert("Entre un email et un mot de passe.");
+  const { error } = await client.auth.signUp({ email, password });
+  if (error) return alert(error.message);
+  alert("Compte créé. Vérifie ton email si Supabase demande une confirmation.");
+  await refreshAuthState();
+}
+
+async function signInUser() {
+  const client = initSupabaseClient();
+  if (!client) return alert("Clé Supabase publique manquante.");
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  if (!email || !password) return alert("Entre un email et un mot de passe.");
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+  await refreshAuthState();
+}
+
+async function signOutUser() {
+  const client = initSupabaseClient();
+  if (client) await client.auth.signOut();
+  await refreshAuthState();
+}
+
+async function enableBrowserNotifications() {
+  if (!("Notification" in window)) {
+    alert("Les notifications ne sont pas disponibles sur ce navigateur.");
+    return;
+  }
+  const result = await Notification.requestPermission();
+  alert(result === "granted" ? "Notifications activées." : "Notifications refusées.");
+}
+
+async function syncOfficialMatches() {
+  setSyncStatus("Synchronisation...");
+  const res = await fetch(`${WORKER_URL}/sync-matches`);
+  const data = await res.json();
+  setSyncStatus(data.ok ? `Matchs importés : ${data.imported}` : "Erreur sync");
+  await loadOfficialMatches();
+}
+
+async function syncLiveScores() {
+  setSyncStatus("Live...");
+  const res = await fetch(`${WORKER_URL}/sync-live`);
+  const data = await res.json();
+  setSyncStatus(data.ok ? `Matchs live : ${data.live_matches}` : "Erreur live");
+  await loadOfficialMatches();
+}
+
+async function loadOfficialMatches() {
+  const client = initSupabaseClient();
+  const box = document.getElementById("officialMatches");
+  if (!client) {
+    if (box) box.innerHTML = "<div class='small-muted'>Renseigne la Publishable Key Supabase dans le fichier pour afficher les matchs.</div>";
+    return;
+  }
+  if (box) box.innerHTML = "Chargement...";
+  const { data, error } = await client
+    .from("matches")
+    .select("*")
+    .order("match_date", { ascending: true })
+    .limit(120);
+
+  if (error) {
+    if (box) box.innerHTML = `<b>Erreur Supabase :</b> ${error.message}`;
+    return;
+  }
+
+  if (!data?.length) {
+    if (box) box.innerHTML = "<div class='small-muted'>Aucun match officiel chargé. Clique sur Synchroniser matchs.</div>";
+    return;
+  }
+
+  if (box) {
+    box.innerHTML = data.map(m => `
+      <div class="match-card">
+        <b>${m.team_home || "Équipe 1"} - ${m.team_away || "Équipe 2"}</b><br>
+        <span class="small-muted">${m.stage || ""} — ${m.match_date ? new Date(m.match_date).toLocaleString("fr-FR") : ""}</span><br>
+        Score officiel : <b>${m.score_home ?? "-"} - ${m.score_away ?? "-"}</b> 
+        <span class="small-muted">(${m.status || "NS"})</span>
+        <div class="prediction-row">
+          Mon score :
+          <input id="pred-h-${m.id}" inputmode="numeric" type="number" min="0">
+          -
+          <input id="pred-a-${m.id}" inputmode="numeric" type="number" min="0">
+          <button onclick="savePrediction(${m.id})">Enregistrer</button>
+        </div>
+      </div>
+    `).join("");
+  }
+}
+
+async function savePrediction(matchId) {
+  const client = initSupabaseClient();
+  if (!client) return alert("Clé Supabase publique manquante.");
+  await refreshAuthState();
+  if (!currentUser) return alert("Connecte-toi d'abord.");
+  const h = document.getElementById(`pred-h-${matchId}`)?.value;
+  const a = document.getElementById(`pred-a-${matchId}`)?.value;
+  if (h === "" || a === "") return alert("Entre les deux scores.");
+  const { error } = await client.from("predictions").upsert({
+    user_id: currentUser.id,
+    match_id: matchId,
+    predicted_home: Number(h),
+    predicted_away: Number(a),
+    updated_at: new Date().toISOString()
+  }, { onConflict: "user_id,match_id" });
+  if (error) return alert(error.message);
+  alert("Pronostic enregistré.");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  refreshAuthState();
+});
+</script>
+
+
+<script id="android-pwa-service-worker">
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
