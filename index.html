@@ -703,6 +703,26 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script>
+async function enableNotifications() {
+  try {
+    if (!("Notification" in window)) return;
 
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") return;
+
+    alert("Notifications Coupe du Monde 2026 activées !");
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    enableNotifications();
+  }, 2000);
+});
+</script>
 </body>
 </html>
