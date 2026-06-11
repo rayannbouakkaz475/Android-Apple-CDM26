@@ -754,10 +754,14 @@ subscription = await registration.pushManager.subscribe({
     const data = await res.json();
 
     if (data.ok) {
-      alert("Notifications Coupe du Monde 2026 activées et enregistrées !");
-    } else {
-      alert("Notifications activées, mais non enregistrées.");
-    }
+  alert("Notifications Coupe du Monde 2026 activées et enregistrées !");
+} else {
+  alert(
+    "Notifications activées, mais non enregistrées.\\n" +
+    "Status: " + data.status + "\\n" +
+    "Réponse: " + (data.response || data.error || "aucune")
+  );
+}
   } catch (e) {
     alert("Erreur notifications : " + e.message);
     console.error(e);
