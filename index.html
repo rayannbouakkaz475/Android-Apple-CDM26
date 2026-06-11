@@ -726,23 +726,18 @@ async function enableNotifications() {
     if (permission !== "granted") return;
 
     const registration = await navigator.serviceWorker.ready;
+let subscription = await registration.pushManager.getSubscription();
 
-    let subscription = await registration.pushManager.getSubscription();
-if (
-  subscription &&
-  (!subscription.endpoint ||
-   !subscription.keys ||
-   !subscription.keys.p256dh ||
-   !subscription.keys.auth)
-) {
+if (subscription) {
+  await subscription.unsubscribe();
   subscription = null;
 }
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-    }
+
+subscription = await registration.pushManager.subscribe({
+  userVisibleOnly: true,
+  applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+});
+    
 
     const res = await fetch(`${PUSH_WORKER_URL}/save-subscription`, {
       method: "POST",
