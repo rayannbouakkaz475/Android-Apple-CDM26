@@ -728,7 +728,15 @@ async function enableNotifications() {
     const registration = await navigator.serviceWorker.ready;
 
     let subscription = await registration.pushManager.getSubscription();
-
+if (
+  subscription &&
+  (!subscription.endpoint ||
+   !subscription.keys ||
+   !subscription.keys.p256dh ||
+   !subscription.keys.auth)
+) {
+  subscription = null;
+}
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
